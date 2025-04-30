@@ -14,4 +14,4 @@ saved every 250 ticks) for 100 independent runs.
 - The **NetLogo version** outputs a single consolidated `.csv` file that includes all simulations in one dataset.
 
 For performance reasons, we recommend using the C++ implementation, which is considerably faster. Accordingly, the R scripts are preconfigured to read the C++ output 
-(available in the `Simulation Data` folder). However, once the `all_data` object is loaded, the subsequent analysis is identical regardless of whether the data comes from C++ or NetLogo.
+(available in the `Simulation Data` folder). However, once the `all_data` variable is created, the subsequent analysis is identical regardless of whether the data comes from C++ or NetLogo.
