@@ -174,6 +174,6 @@ After the program runs, you’ll see `.csv` files appear in the folder in which 
 ## 📎 Notes
 
 - No installation of NetLogo or R is needed to run the C++ model itself.
-- If you want to visualize the model or experiment interactively, see the NetLogo version in the `/netlogo` folder.
+- If you want to visualize the model or experiment interactively, see the NetLogo version in the `/NetLogo` folder.
 
 ---
