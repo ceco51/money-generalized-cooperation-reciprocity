@@ -68,8 +68,9 @@ df_core_money <-
 # The experiment folder may contain more parameter combinations than actually used.
 # Therefore, after loading all files, we give the possibility to apply filters to retain only the relevant ones.
 
-# This example here replicates Figure 2 of the main manuscript. To replicate the evolutionary trajectoris of another Figure (e.g., Figure 5),
-# simply change the file_path and apply the necessary modifications below.
+# This script replicates the evolutionary trajectories shown in Figure 2 of the main manuscript.
+# To replicate a different figure (e.g., Figure 5), simply update the `file_path` variable and
+# make any additional necessary adjustments to the code below.
 
 Figure2 <- df_core_money %>% 
   filter(BCRatio %in% c(2, 3, 5, 10)) %>%
