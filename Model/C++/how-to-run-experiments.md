@@ -62,10 +62,9 @@ Finally, in the function `void runParameterSet(const SimulationParameters& param
 ```cpp
 int parallelRepetitions = 100;
 ```
-Final results will be saved as '.csv' files in the current working directory.
-
 By default, the code runs **100 parallel repetitions** for each parameter combination. To increase or decrease this, simply modify the number, for example, to run 200 repetitions:
 
 ```cpp
 int parallelRepetitions = 200;
 ```
+Final results will be saved as '.csv' files in the current working directory. One file will correspond to one parameters combination.
