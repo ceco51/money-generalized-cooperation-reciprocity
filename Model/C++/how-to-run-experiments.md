@@ -40,4 +40,31 @@ for (double bcr : benefitToCostRatios) {
 }
 ```
 
-You can also modify other parameters in the `SimulationParameters` constructor—for example, the initial population composition or the number of simulation steps. However, our primary interest lies in exploring the **joint effects** of `benefitToCostRatios` and `initialLiquidityValues`. For this reason, we do **not** perform parameter sweeps over population compositions. Instead, we condition the analysis on a few selected initial population structures to isolate the effects of interest.
+You can also modify other parameters in the `SimulationParameters` constructor—for example, the initial population composition or the number of simulation steps. However, our primary interest lies in exploring the **joint effects** of `benefitToCostRatios` and `initialLiquidityValues`. For this reason, we do not perform parameter sweeps over population compositions. Instead, we condition the analysis on a few selected initial population structures to isolate the effects of interest.
+
+To use more threads and run multiple parameter combinations in parallel, modify the following line in the function:
+
+```cpp
+const int MAX_CONCURRENT_PARAMS = std::max(1, static_cast<int>(std::thread::hardware_concurrency()) / 2);
+```
+- For example, on our machine with 12 cores, `std::thread::hardware_concurrency()` returns `12`, so dividing by `2` gives `6`. This means `std::thread::hardware_concurrency()/2` parameter combinations will run concurrently by default.
+- If you want to use **all of your cores**, simply divide by `1`:
+
+```cpp
+const int MAX_CONCURRENT_PARAMS = std::max(1, static_cast<int>(std::thread::hardware_concurrency()) / 1);
+```
+
+- If you prefer to use **fewer cores**, increase the denominator (e.g., dividing by `3` will run 4 combinations concurrently on a 12-core machine).
+- This value is stored as an `int`, with a minimum value of `1` to ensure that at least one parameter combination is processed.
+
+Finally, in the function `void runParameterSet(const SimulationParameters& params, const std::string& prefix)`, you will see the variable:
+
+```cpp
+int parallelRepetitions = 100;
+```
+
+By default, the code runs **100 parallel repetitions** for each parameter combination. To increase or decrease this, simply modify the number, for example, to run 200 repetitions:
+
+```cpp
+int parallelRepetitions = 200;
+```
