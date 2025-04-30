@@ -15,7 +15,7 @@ library(readr)
 # The code below lists all CSV files produced by the C++ simulation in the target folder.
 
 # Define the directory where the simulation outputs are stored.
-file_path <- "C:\\Users\\Francesco\\Desktop\\money_c++\\Main\\Figure4"  # Replace with your actual directory path
+file_path <- "C:\\Users\\Desktop\\money_c++\\Main\\Figure4"  # Replace with your actual directory path
 csv_files <- list.files(path = file_path, 
                         pattern = "*.csv", 
                         full.names = TRUE
