@@ -60,7 +60,7 @@ sudo apt install g++
 3. **Navigate to the folder where `money.cpp` is saved:**
 
 ```bash
-cd /mnt/c/Users/YOUR_USERNAME/Downloads/YOUR_REPO
+cd /mnt/c/Users/YOUR_USERNAME/YOUR_PATH
 ```
 
 4. **Compile and run:**
