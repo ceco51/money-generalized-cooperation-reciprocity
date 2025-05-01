@@ -103,12 +103,12 @@ to go
       cooperate
     ]
 
-    ;; a. Defectors always defect:
+    ;; b. Defectors always defect:
     if breed = defectors [
       defect
     ]
 
-    ;; b. Direct-reciprocity agents cooperate unless the current partner ID is stored in the agent's memory list (otherwise, they defect and erase the partner from the list):
+    ;; c. Direct-reciprocity agents cooperate unless the current partner ID is stored in the agent's memory list (otherwise, they defect and erase the partner from the list):
     if breed = directs [
       ifelse not member? current-partner memory [
         cooperate
@@ -118,7 +118,7 @@ to go
       ]
     ]
 
-    ;; c. Indirect-reciprocity agents cooperate only if their current partner's reputation score is positive:
+    ;; d. Indirect-reciprocity agents cooperate only if their current partner's reputation score is positive:
     if breed = indirects [
       ifelse [score] of current-partner > 0 [
         cooperate
@@ -127,12 +127,12 @@ to go
       ]
     ]
 
-    ;; d. Money-type agents cooperate only if their current partner's money balance is positive; in that case, the agent's balance increases and the partner's balance decreases:
+    ;; e. Money-type agents cooperate only if their current partner's money balance is positive; in that case, the agent's balance increases and the partner's balance decreases:
     if breed = moneys [
       ifelse [balance] of current-partner > 0 [
         cooperate
-        ;set balance balance + 1
-        ;ask current-partner [ set balance balance - 1 ]
+        set balance balance + 1
+        ask current-partner [ set balance balance - 1 ]
       ][
         defect
       ]
@@ -162,11 +162,6 @@ to cooperate
   ask current-partner [ set fitness fitness + benefit ]              ; this agent's partner receives a fitness benefit
   set score score + 1                                                ; this agent's reputation increases
   set cooperations-this-turn cooperations-this-turn + 1              ; update the cooperation counter
-
-  set balance balance + 1
-        ;ask current-partner [ set balance balance - 1 ]
-
-
   if visualization? [ ask my-out-links [ set color 97 ] ]
 end
 
