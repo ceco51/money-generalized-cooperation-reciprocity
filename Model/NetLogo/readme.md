@@ -8,6 +8,8 @@ The GUI makes it easy to **explore and understand the model dynamics**, making i
 
 ---
 
+The NetLogo desktop software can be downloaded at https://ccl.northwestern.edu/netlogo/ . Use the 'File -> Open' option  to load the `money.nlogo` file. Alternatively, the model can also be run on a browser through Netlogo Web ( https://www.netlogoweb.org/ -> 'Upload a Model: Choose File' ) without a desktop installation.
+
 ### Running Experiments in NetLogo via BehaviorSpace
 
 To run experiments in the NetLogo version of the model, use **BehaviorSpace**. The following setup reproduces the data used for **Figure 2** of the main manuscript.
