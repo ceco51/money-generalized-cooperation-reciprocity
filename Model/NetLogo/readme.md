@@ -6,8 +6,6 @@ The GUI makes it easy to **explore and understand the model dynamics**, making i
 
 ![image](https://github.com/user-attachments/assets/11897fcc-d090-4213-b905-172991bdccef)
 
-Here’s a cleaned-up and professional version of your instructions for running experiments in NetLogo using BehaviorSpace, with a properly formatted NetLogo code snippet:
-
 ---
 
 ### Running Experiments in NetLogo via BehaviorSpace
