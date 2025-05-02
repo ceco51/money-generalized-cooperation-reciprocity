@@ -9,3 +9,5 @@ BehaviorSpace, mirroring the C++ functionality. Since it is significantly slower
 - **Simulation data**: Organized into subfolders corresponding to each figure in the main text and supplementary information (SI).
 
 Before running the R scripts, make sure to extract (decompress) the simulation data.
+
+This repository also contains the .PDF version of the Supplementary Information (SI) file. 
