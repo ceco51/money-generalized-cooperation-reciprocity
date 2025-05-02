@@ -2,44 +2,30 @@
 
 This guide will help you run the `money.cpp` simulation code **even if you've never used C++ before**.
 
-## Quick Start Guide
+# 🧪 Option 1: Running the money.cpp Simulation on Windows with Docker
 
-## 🧪 Option 1: Run the `money.cpp` Simulation with Docker (No C++ Setup Needed)
+This guide will help you run the C++ simulation code on Windows using Docker, with a special focus on ensuring the CSV output files are properly saved to your computer.
 
-This guide lets you compile and run the C++ code without installing anything besides Docker.
+## ✅ Step 1: Install Docker Desktop
 
-#### ✅ Step 1: Install Docker
+1. Download Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
+2. Install Docker Desktop by following the installation wizard
+3. Start Docker Desktop and wait for it to fully load (check for the Docker icon in your system tray)
+4. Verify Docker is working by opening PowerShell and typing:
+   ```
+   docker --version
+   ```
 
-If you don’t already have Docker:
+## ✅ Step 2: Set Up Your Project Files
 
-- **Windows/macOS**: Download and install Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-- **Linux**: Install Docker via your package manager (e.g., `sudo apt install docker.io` on Ubuntu), then enable and start the service.
+1. Create a new folder on your computer (e.g., `C:\money-simulation`)
+2. Inside this folder, create these files:
 
-Once installed, open a terminal and check it's working:
+### 📄 File 1: money.cpp
+Save your simulation code as `money.cpp` in the project folder.
 
-```bash
-docker --version
-```
-
----
-
-#### ✅ Step 2: Prepare Your Files
-
-1. Create a new empty folder (e.g., `money-simulation`)
-2. Inside that folder, save the following two files:
-
----
-
-#### 📄 `money.cpp`  
-Download the C++ simulation file into this folder. You can:
-
-- Use the GitHub website: Click on `money.cpp` → **Raw** → Right click → **Save As...**
-- Or copy-paste your C++ code into a new text file named `money.cpp`.
-
----
-
-#### 📄 `Dockerfile`  
-Create a new file in the same folder called `Dockerfile` (no extension) and paste the following:
+### 📄 File 2: Dockerfile
+Create a file named exactly `Dockerfile` (no file extension) with this content:
 
 ```dockerfile
 # Use a minimal Ubuntu image
@@ -55,11 +41,15 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create an app directory inside the container
+# Create app and output directories inside the container
 WORKDIR /app
+RUN mkdir -p /app/output
 
 # Copy your C++ file into the container
 COPY money.cpp .
+
+# Modify the C++ code to save to the /app/output directory
+RUN sed -i 's|outputFilename = oss.str();|outputFilename = "output/" + oss.str();|' money.cpp
 
 # Compile the C++ code
 RUN g++ -std=c++17 -pthread money.cpp -o money -O3
@@ -68,31 +58,82 @@ RUN g++ -std=c++17 -pthread money.cpp -o money -O3
 CMD ["./money"]
 ```
 
----
+### 📄 File 3: run-simulation.ps1
+Create a file named `run-simulation.ps1` with this content:
 
-### ✅ Step 3: Build the Docker Image
+```powershell
+# PowerShell script to build and run Docker container with volume mounting
+# Create a directory for output files if it doesn't exist
+$outputDir = "$PWD\output"
+if (-not (Test-Path -Path $outputDir)) {
+    New-Item -ItemType Directory -Path $outputDir
+    Write-Host "Created directory: $outputDir"
+}
 
-In a terminal, navigate to the folder where you saved `money.cpp` and `Dockerfile`. Then run:
-
-```bash
+# Build the Docker image
+Write-Host "Building Docker image..."
 docker build -t money-simulation .
+
+# Run the container with volume mount
+Write-Host "Running simulation in Docker container..."
+Write-Host "CSV files will be saved to: $outputDir"
+docker run --rm -v "${outputDir}:/app/output" money-simulation
+
+Write-Host "Simulation complete."
+Write-Host "Check $outputDir for your CSV files."
 ```
 
-This will download the necessary Linux environment, install C++ tools, compile the code, and package it all into a runnable image called `money-simulation`.
+## ✅ Step 3: Run the Simulation
 
----
+1. Open PowerShell
+2. Navigate to your project folder using the `cd` command:
+   ```
+   cd C:\path\to\your\money-simulation
+   ```
+3. Run the PowerShell script:
+   ```
+   .\run-simulation.ps1
+   ```
+4. This script will:
+   - Create an `output` folder (if it doesn't exist)
+   - Build the Docker image
+   - Run the simulation
+   - Save all CSV files to the `output` folder
 
-### ✅ Step 4: Run the Simulation
+## ✅ Step 4: Find Your Output Files
 
-After building, you can run your simulation with:
+When the simulation completes, all CSV files will be in the `output` folder inside your project directory.
 
-```bash
-docker run --rm money-simulation
-```
+## ⚠️ Troubleshooting CSV File Issues
 
----
+If you don't see CSV files in your output folder:
 
-### 🔁 Optional: Rebuild After Code Changes
+1. **Check Docker permissions**:
+   - Make sure Docker Desktop has permission to access your drives
+   - Open Docker Desktop → Settings → Resources → File sharing → Ensure your drive is shared
+
+2. **Run PowerShell as Administrator**:
+   - Right-click on PowerShell → "Run as administrator"
+   - Navigate to your project folder and run the script again
+
+3. **Try explicit paths**:
+   - Modify the script to use full paths instead of relative paths:
+   ```powershell
+   $projectDir = "C:\path\to\your\money-simulation"
+   $outputDir = "$projectDir\output"
+   # ... rest of script ...
+   docker run --rm -v "${outputDir}:/app/output" money-simulation
+   ```
+
+4. **Check output folder permissions**:
+   - Right-click on the output folder → Properties → Security
+   - Ensure your user account has "Write" permissions
+
+5. **Verify the simulation ran correctly**:
+   - The simulation should show progress and completion messages in the terminal
+   - If the simulation fails or terminates early, check for error messages
+
+## 🔁 Optional: Rebuild After Code Changes
 
 If you edit `money.cpp`, you need to rebuild the Docker image:
 
@@ -100,11 +141,18 @@ If you edit `money.cpp`, you need to rebuild the Docker image:
 docker build -t money-simulation .
 ```
 
-Then re-run as before.
+Then run again with the volume mount to ensure your CSV files are saved:
 
----
+```powershell
+docker run --rm -v "${PWD}\output:/app/output" money-simulation
+```
 
-## 🧑‍💻 Option 2: Compile and Run on Your Own Computer
+Or simply use the PowerShell script:
+
+```powershell
+.\run-simulation.ps1
+```
+# 🧑‍💻 Option 2: Compile and Run on Your Own Computer
 
 If you're comfortable installing things, follow the guide for your system.
 
