@@ -1,25 +1,27 @@
 # How to Run This Code (Even If You Have Never Used C++)
 
-This guide will help you run the `money.cpp` simulation code **even if you've never used C++ before**.
+This guide will help you run the `money.cpp` simulation, even if you have **no prior experience with C++**. You have two options:
 
-# 🧪 Option 1: Running the money.cpp Simulation on Windows with Docker
+- **Option 1: Use Docker** (working on Windows, macOS, and Linux)  
+- **Option 2: Compile and run the code directly** (on Windows, this requires installing the Windows Subsystem for Linux, or WSL)
 
-This guide will help you run the C++ simulation code on Windows using Docker, with a special focus on ensuring the CSV output files are properly saved to your computer.
+Each option is explained step-by-step so you can get started quickly, regardless of your setup.
+
+## 🧪 Option 1a: Running the money.cpp Simulation on Windows with Docker
+
+This section will help you run the C++ simulation code on Windows using Docker, also ensuring the CSV output files are properly saved in your computer.
 
 ## ✅ Step 1: Install Docker Desktop
 
-1. Download Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-2. Install Docker Desktop by following the installation wizard
-3. Start Docker Desktop and wait for it to fully load (check for the Docker icon in your system tray)
-4. Verify Docker is working by opening PowerShell and typing:
+Download and install Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop). Verify Docker is working by opening PowerShell and typing:
    ```
    docker --version
    ```
 
 ## ✅ Step 2: Set Up Your Project Files
 
-1. Create a new folder on your computer (e.g., `C:\money-simulation`)
-2. Inside this folder, create these files:
+1. Create a new folder on your computer (e.g., `C:\Users\USERNAME\money-simulation`)
+2. Inside this folder, place these files:
 
 ### 📄 File 1: money.cpp
 Save your simulation code as `money.cpp` in the project folder.
@@ -114,24 +116,20 @@ If you don't see CSV files in your output folder:
 
 2. **Run PowerShell as Administrator**:
    - Right-click on PowerShell → "Run as administrator"
-   - Navigate to your project folder and run the script again
+   - Navigate to your project folder and run the script again as before
 
 3. **Try explicit paths**:
    - Modify the script to use full paths instead of relative paths:
    ```powershell
    $projectDir = "C:\path\to\your\money-simulation"
    $outputDir = "$projectDir\output"
-   # ... rest of script ...
+   # ... rest of script unchanged ...
    docker run --rm -v "${outputDir}:/app/output" money-simulation
    ```
 
 4. **Check output folder permissions**:
    - Right-click on the output folder → Properties → Security
    - Ensure your user account has "Write" permissions
-
-5. **Verify the simulation ran correctly**:
-   - The simulation should show progress and completion messages in the terminal
-   - If the simulation fails or terminates early, check for error messages
 
 ## 🔁 Optional: Rebuild After Code Changes
 
@@ -152,76 +150,260 @@ Or simply use the PowerShell script:
 ```powershell
 .\run-simulation.ps1
 ```
-# 🧑‍💻 Option 2: Compile and Run on Your Own Computer
 
-If you're comfortable installing things, follow the guide for your system.
+## 🐧🍎 Option 1b: Running the `money.cpp` Simulation on Linux or macOS with Docker
 
----
-
-### 🔵 Windows (2 ways)
-
-#### Option A: Windows Subsystem for Linux (WSL) – Recommended
-
-1. **Install WSL**:  
-   Follow this Microsoft guide: https://learn.microsoft.com/en-us/windows/wsl/install
-
-2. **Install required tools inside WSL terminal:**
-
-Open a terminal (e.g., Windows + R, then type "Ubuntu")
-```bash
-sudo apt update
-sudo apt install g++
-```
-
-3. **Navigate to the folder where `money.cpp` is saved:**
-
-```bash
-cd /mnt/c/Users/YOUR_PATH_TO_MONEY.CPP
-```
-
-4. **Compile and run:**
-
-```bash
-g++ -std=c++17 -pthread money.cpp -o money -O3
-./money
-```
-Every time you modify the C++ file (e.g., by changing the parameter combinations to explore) you need to recompile and then re-run. 
-
-#### Option B: MinGW (for advanced users)
-
-- Install MinGW from https://www.mingw-w64.org/
-- Open the MinGW terminal, navigate to your folder, then compile and run as above.
+This section guides you through running the same C++ simulation using Docker on **Linux or macOS**, and saving CSV output files properly in your host machine.
 
 ---
 
-### 🟢 Linux (Ubuntu/Debian)
+## ✅ Step 1: Install Docker
 
-1. **Install the compiler:**
+1. **Linux**: Follow the instructions for your distribution at https://docs.docker.com/engine/install/
+2. **macOS**: Download Docker Desktop from https://www.docker.com/products/docker-desktop/
+3. After installation, verify Docker is working:
+   ```bash
+   docker --version
+   ```
+
+---
+
+## ✅ Step 2: Set Up Your Project Files
+
+Create a project folder and include the necessary files:
 
 ```bash
-sudo apt update
-sudo apt install g++
+mkdir -p ~/money-simulation && cd ~/money-simulation
 ```
 
-2. **Navigate to the code folder and compile:**
+### 📄 `money.cpp`
+Put your simulation code here.
 
-```bash
-cd path/to/your/folder
-g++ -std=c++17 -pthread money.cpp -o money -O3
-./money
+### 📄 `Dockerfile`
+Same as in your Windows guide (no file extension):
+
+```dockerfile
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    g++ \
+    make \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+RUN mkdir -p /app/output
+
+COPY money.cpp .
+
+RUN sed -i 's|outputFilename = oss.str();|outputFilename = "output/" + oss.str();|' money.cpp
+
+RUN g++ -std=c++17 -pthread money.cpp -o money -O3
+
+CMD ["./money"]
 ```
 
 ---
 
-## 📁 What You Get After Running
+### 📄 `run-simulation.sh`
 
-After the program runs, you’ll see `.csv` files appear in the folder in which './money' is executed. These contain the results of the simulations. You can analyze them using the R scripts in the `/R` folder (see instructions in the README for R).
+Create a **shell script** instead of PowerShell:
+
+```bash
+#!/bin/bash
+
+# Make sure script exits on error
+set -e
+
+# Get the absolute path to the output directory
+OUTPUT_DIR="$(pwd)/output"
+
+# Create output directory if it doesn't exist
+mkdir -p "$OUTPUT_DIR"
+echo "Created output directory: $OUTPUT_DIR"
+
+# Build Docker image
+echo "Building Docker image..."
+docker build -t money-simulation .
+
+# Run simulation with volume mount
+echo "Running simulation in Docker container..."
+docker run --rm -v "$OUTPUT_DIR:/app/output" money-simulation
+
+echo "Simulation complete."
+echo "Check $OUTPUT_DIR for your CSV files."
+```
+
+Then make it executable:
+
+```bash
+chmod +x run-simulation.sh
+```
 
 ---
 
-## 📎 Notes
+## ✅ Step 3: Run the Simulation
 
-- No installation of NetLogo or R is needed to run the C++ model itself.
-- If you want to visualize the model or experiment interactively, see the NetLogo version in the `/NetLogo` folder.
+```bash
+./run-simulation.sh
+```
+
+This will:
+- Create an `output` folder
+- Build the Docker image
+- Run the simulation
+- Store CSV files in `./output`
+
+---
+
+## ✅ Step 4: Find Your Output Files
+
+They'll be in the `output` folder next to your code.
+
+---
+
+## ⚠️ Troubleshooting (Linux/macOS)
+
+1. **Permissions**:
+   - Ensure you have write access to the folder you're using
+   - Avoid using Docker with `sudo` unless necessary. If needed, add your user to the Docker group:
+     ```bash
+     sudo usermod -aG docker $USER
+     ```
+
+2. **macOS file sharing**:
+   - Docker Desktop for macOS must have access to your folders under:
+     **Settings → Resources → File Sharing**
+
+3. **Check container logs**:
+   - Run interactively to debug:
+     ```bash
+     docker run -it --rm -v "$(pwd)/output:/app/output" money-simulation /bin/bash
+     ```
+
+---
+
+## 🔁 Rebuilding After Code Changes
+
+If you change `money.cpp`:
+
+```bash
+docker build -t money-simulation .
+./run-simulation.sh
+```
+
+---
+
+Here’s a more polished, user-friendly, and cross-platform version of your guide that clearly separates instructions for Windows, Linux, and macOS, improves readability, and makes assumptions transparent:
+
+---
+
+## 🧑‍💻 Option 2: Compile and Run the Simulation on Your Computer
+
+If you'd rather run the simulation **without Docker**, you can compile and execute the C++ code directly on your machine. Choose the method that fits your operating system.
+
+---
+
+## 🔵 Windows (Two Options)
+
+### ✅ Option A: Use Windows Subsystem for Linux (WSL) — **Recommended**
+
+1. **Install WSL**  
+   Follow Microsoft’s official instructions here:  
+   👉 https://learn.microsoft.com/en-us/windows/wsl/install
+
+2. **Open your Ubuntu terminal** (e.g., search “Ubuntu” in your Start menu, or presso WINDOWS+R and then type "ubuntu")
+
+3. **Install the C++ compiler inside WSL:**
+
+   ```bash
+   sudo apt update
+   sudo apt install g++
+   ```
+
+4. **Navigate to your project folder:**  
+   Use the `/mnt/c/` path to access your Windows files from within WSL:
+
+   ```bash
+   cd /mnt/c/Users/YOUR_USERNAME/path/to/money.cpp
+   ```
+
+5. **Compile and run the code:**
+
+   ```bash
+   g++ -std=c++17 -pthread money.cpp -o money -O3
+   ./money
+   ```
+
+   > 📌 **Note**: Every time you edit `money.cpp`, you'll need to recompile it before running again.
+
+---
+
+### ⚠️ Option B: Use MinGW (Advanced Users)
+
+- Download and install MinGW from: https://www.mingw-w64.org/
+- Open the MinGW terminal (`mingw32.exe` or similar)
+- Use `cd` to navigate to your folder
+- Compile and run using:
+
+  ```bash
+  g++ -std=c++17 -pthread money.cpp -o money -O3
+  ./money.exe
+  ```
+
+> ⚠️ **Caution**: Threading support on Windows via MinGW can be tricky. Use WSL if possible.
+
+---
+
+## 🟢 Linux (Ubuntu/Debian)
+
+1. **Open a terminal and install the compiler:**
+
+   ```bash
+   sudo apt update
+   sudo apt install g++
+   ```
+
+2. **Navigate to your project folder and compile:**
+
+   ```bash
+   cd path/to/your/folder
+   g++ -std=c++17 -pthread money.cpp -o money -O3
+   ./money
+   ```
+
+---
+
+## 🍎 macOS
+
+1. **Install Xcode Command Line Tools:**
+
+   Open Terminal and run:
+
+   ```bash
+   xcode-select --install
+   ```
+
+2. **Navigate to your project folder and compile:**
+
+   ```bash
+   cd /path/to/your/folder
+   g++ -std=c++17 -pthread money.cpp -o money -O3
+   ./money
+   ```
+
+---
+
+## 📁 Output Files
+
+After running `./money`, you'll find the resulting `.csv` files in the **same folder**. These contain the simulation results and can be analyzed using the R scripts located in the `/R` folder.
+
+---
+
+## 📝 Notes
+
+- 🧩 No need to install NetLogo or R to run the C++ model.
+- 🖼️ If you want to visualize the model or experiment interactively, use the NetLogo version in the `/NetLogo` folder.
 
 ---
