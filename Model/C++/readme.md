@@ -118,7 +118,12 @@ If you don't see CSV files in your output folder:
    - Right-click on PowerShell → "Run as administrator"
    - Navigate to your project folder and run the script again as before
 
-3. **Try explicit paths**:
+3. **Bypass PowerShell policy restrictions for this script**
+```powershell
+   powershell.exe -ExecutionPolicy Bypass -File .\run-simulation.ps1
+```
+
+4. **Try explicit paths**:
    - Modify the script to use full paths instead of relative paths:
    ```powershell
    $projectDir = "C:\path\to\your\money-simulation"
@@ -127,7 +132,7 @@ If you don't see CSV files in your output folder:
    docker run --rm -v "${outputDir}:/app/output" money-simulation
    ```
 
-4. **Check output folder permissions**:
+5. **Check output folder permissions**:
    - Right-click on the output folder → Properties → Security
    - Ensure your user account has "Write" permissions
 
