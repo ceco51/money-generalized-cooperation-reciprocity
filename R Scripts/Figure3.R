@@ -70,7 +70,7 @@ df_core_money <-
 
 Figure3 <- df_core_money %>% 
   filter(Step == 30000) %>% 
-  filter(BCRatio == 2) %>% 
+  filter(BCRatio == 1.25) %>% 
   ggplot(aes(x = factor(Liquidity), y = CooperationRate)) +
   # Add nicer boxplots with custom colors
   geom_boxplot(
