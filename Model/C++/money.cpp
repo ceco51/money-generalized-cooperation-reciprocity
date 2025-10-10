@@ -1,6 +1,5 @@
 // compilation command: g++ -std=c++17 -pthread money.cpp -o money -O3
 // run the compiled program: ./money
-
 #include <iostream>
 #include <vector>
 #include <random>
@@ -69,7 +68,7 @@ struct SimulationParameters {
 // Random number generation utilities
 class Random {
 private:
-    static thread_local std::mt19937 generator; 
+    static thread_local std::mt19937 generator;
 
 public:
     static void initialize() {
@@ -131,11 +130,12 @@ private:
     std::vector<int> memory;
     int score;
     int balance;
+    bool standing;
 
 public:
     Agent(int id, Strategy strategy, int initialScore, double initialLiquidity) 
         : id(id), strategy(strategy), fitness(0), currentPartner(nullptr), 
-          score(initialScore) {
+          score(initialScore), standing(true) {
         
         // Assign initial money based on liquidity parameter
         if (initialLiquidity < 1.0) {
@@ -151,6 +151,7 @@ public:
     double getFitness() const { return fitness; }
     std::shared_ptr<Agent> getCurrentPartner() const { return currentPartner; }
     int getScore() const { return score; }
+    bool getStanding() const { return standing; }
     int getBalance() const { return balance; }
     
     // Some setters
@@ -159,7 +160,6 @@ public:
     void setCurrentPartner(std::shared_ptr<Agent> partner) { currentPartner = partner; }
     void setBalance(int newBalance) { balance = newBalance; }
 
-    // Some utilities
     void resetFitness() { fitness = 0; }
     
     bool isInMemory(int agentId) const {
@@ -176,7 +176,6 @@ public:
         memory.erase(std::remove(memory.begin(), memory.end(), agentId), memory.end());
     }
 
-    // To be implemented
     void cooperate(double cost, double benefit);
     void defect();
 };
@@ -221,7 +220,7 @@ private:
     std::vector<SimulationResult> results;
     int runId;
     
-    // Key methods
+    // Important methods
     void matchAgents();
     void executeActions();
     void evolve();
@@ -247,7 +246,7 @@ public:
 
 // Implementation of Agent's action methods
 void Agent::cooperate(double cost, double benefit) {
-    // The cooperator (acting or helping agent) pays a fitness cost
+    // The cooperator (acting agent) pays a fitness cost
     fitness -= cost;
     
     // Partner receives a benefit
@@ -255,17 +254,21 @@ void Agent::cooperate(double cost, double benefit) {
         currentPartner->setFitness(currentPartner->getFitness() + benefit);
     }
     
-    // Reputation of the helping agent increases
-    score += 1;
+    // Reputation of the helping agent increases (choose either standing or image scoring)
+    //score += 1;
+    standing = true;
 }
 
 void Agent::defect() {
-    // Reputation of the defecting agent decreases
-    score -= 1;
+    // Reputation of the defecting agent decreases (uncomment for image scoring, comment out standing)
+    //score -= 1;
 
     // Add this defecting agent to partner's memory
     if (currentPartner) {
         currentPartner->addToMemory(id);
+    }
+    if (currentPartner && currentPartner->getStanding()){ //if true
+        standing = false; 
     }
 }
 
@@ -287,7 +290,7 @@ Simulation::Simulation(const SimulationParameters& params, int runId)
 }
 
 void Simulation::setup() {
-    // Initialize random number generator (thread-safe, one seed for each thread)
+    // Initialize random number generator
     Random::initialize();
     
     // Clear any existing agents and results
@@ -331,14 +334,11 @@ void Simulation::matchAgents() {
     cooperationsThisTurn = 0;
     
     // Reset fitness of all agents and match with a new partner
-    // Every agent is asked to play the 'helping role' once
-    // An agent (due to stochasticity) could be the currentPartner of multiple others
-    for (auto& agent : agents) { 
-        agent->resetFitness(); 
+    for (auto& agent : agents) { // every agent is asked to play the 'helping role' once
+        agent->resetFitness();   // but an agent (due to stochasticity) could be the currentPartner of multiple others
         
         // Select random partner
-        // perform uniform extraction at random until we find someone different from myself (no self-loops)
-        if (agents.size() > 1) {
+        if (agents.size() > 1) {  // Need at least 2 agents for matching
             int partnerIndex;
             do {
                 partnerIndex = Random::uniformInt(0, agents.size() - 1);
@@ -353,9 +353,7 @@ void Simulation::executeActions() {
     for (auto& agent : agents) {
         auto currentPartner = agent->getCurrentPartner();
         if (!currentPartner) continue;  // Skip if no partner
-
-        // Retrieve (with a getter) the strategy of each agent
-        // Depending on the strategy, perform an action (see Figure 1 in the main manuscript)
+        
         switch (agent->getStrategy()) {
             case Strategy::Cooperator:
                 // Cooperators always cooperate
@@ -380,8 +378,15 @@ void Simulation::executeActions() {
                 break;
                 
             case Strategy::Indirect:
-                // Indirect reciprocators cooperate if partner's reputation is positive
-                if (currentPartner->getScore() > 0) {
+                // Indirect reciprocators cooperate if partner's reputation is positive (image score)
+                //if (currentPartner->getScore() > 0) {
+                    //agent->cooperate(cost, benefit);
+                    //cooperationsThisTurn++;
+                //} else {
+                    //agent->defect();
+                //}
+                // Indirect reciprocators cooperate if partner's standing is good
+                if (currentPartner->getStanding()) {
                     agent->cooperate(cost, benefit);
                     cooperationsThisTurn++;
                 } else {
@@ -438,7 +443,6 @@ void Simulation::updateStatistics() {
 }
 
 void Simulation::step() {
-    // Main loop/algorithm of the model
     // Match agents with partners
     matchAgents();
     
@@ -455,19 +459,18 @@ void Simulation::step() {
 }
 
 void Simulation::run(int steps) {
-    // Start from 1 since we already saved step 0 in setup
-    for (int i = 1; i <= steps; i++) {  
+    for (int i = 1; i <= steps; i++) {  // Start from 1 since we already saved step 0 in setup
         step();
 
         // Invasion tests are temporarily commented out. Uncomment the desired test to run it.
 
-        // Note: The code block only runs the invasion once at step 15000. 
+        // Note: The code block only runs the invasion once at step 15,000. 
         // You can modify this condition if you want to trigger the 
         // tests at a different point in the simulation.
         
         // Uncomment ONLY one of the following test blocks to run it:
         
-        // Test 1: Transform "Money" users into "Defectors" (invasion by defectors)
+        // Test 1: Transform "Money" users into "Defectors"
         //if (i == 15000) {
             // First, count the current number of agents with the "Money" strategy
             //auto strategyCounts = countStrategies();
@@ -488,7 +491,7 @@ void Simulation::run(int steps) {
         //}
         // End of Test 1. Uncomment the block above to run Test 1.
 
-        // Test 2: Transform "Money" users into "Cooperators" (invasion by cooperators)
+        // Test 2: Transform "Money" users into "Cooperators"
         //if (i == 15000) {
             // First, count the current number of agents with the "Money" strategy
             //auto strategyCounts = countStrategies();
@@ -509,7 +512,7 @@ void Simulation::run(int steps) {
         //}
         // End of Test 2. Uncomment the block above to run Test 2.
 
-        // Test 3: Transform "Money" users into a mix of "Defectors" and "Cooperators" (invasion by a mix of defectors and cooperators)
+        // Test 3: Transform "Money" users into a mix of "Defectors" and "Cooperators"
         //if (i == 15000) {
             // First, count the current number of agents with the "Money" strategy
             //auto strategyCounts = countStrategies();
@@ -534,7 +537,7 @@ void Simulation::run(int steps) {
         //}
         // End of Test 3. Uncomment the block above to run Test 3.
 
-        // End of invasion tests. Only ONE of the tests should be uncommented at a time.
+        // End of invasion tests. Only one of the tests should be uncommented at a time.
 
         // Collect data every 250 steps or at the end
         if (i % 250 == 0 || i == steps) {
@@ -562,7 +565,6 @@ std::unordered_map<Strategy, int> Simulation::countStrategies() const {
 }
 
 void Simulation::collectData(int currentStep) {
-    // The argument is the current simulation step (an integer)
     auto strategyCounts = countStrategies();
     
     // Store the results
@@ -727,8 +729,8 @@ int main(int argc, char* argv[]) {
     std::vector<SimulationParameters> parameterSets;
     
     // Define different parameter values to test
-    std::vector<double> benefitToCostRatios = {2, 3, 5, 10};
-    std::vector<double> initialLiquidityValues = {0.25, 1, 10, 50};
+    std::vector<double> benefitToCostRatios = {1.25, 1.5, 2, 3, 4, 5, 10, 20, 50, 100};
+    std::vector<double> initialLiquidityValues = {1, 10, 50, 75};
     
     // This creates a full factorial design testing all combinations of the parameters.
     // Each combination will be used to initialize a simulation with different parameter values.
