@@ -20,8 +20,8 @@ To run experiments in the NetLogo version of the model, use **BehaviorSpace**. T
 In the BehaviorSpace configuration, vary the parameters as follows:
 
 ```netlogo
-["initial-liquidity" 0.25 1 10 50]
-["benefit-to-cost-ratio" 2 3 5 10]
+["initial-liquidity" 2 5 10 15]
+["benefit-to-cost-ratio" 1.25 2 3 4]
 ["initial-cooperators" 100]
 ["initial-defectors" 100]
 ["initial-directs" 100]
@@ -29,7 +29,6 @@ In the BehaviorSpace configuration, vary the parameters as follows:
 ["initial-moneys" 100]
 ["evolutionary-updating?" true]
 ["visualization?" false] ; disables drawing for faster execution
-["initial-reputations" 1]
 ```
 
 #### Experiment Settings
