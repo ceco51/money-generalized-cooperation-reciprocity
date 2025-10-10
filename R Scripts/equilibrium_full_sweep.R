@@ -67,18 +67,20 @@ df_core_money <-
 ######### Equilibrium Cooperation Rate and Dominant Strategy (full sweep) #########
 
 Figure4 <- df_core_money %>% 
-  filter(Step == 30000) %>% # Keep only the last iteration for each parameter combination
+  filter(
+    Step == 30000  
+  ) %>%
   pivot_wider(names_from = Strategy, values_from = SurvivorCount) %>%
   mutate(
-    MostPrevalent = case_when( # Dominant strategy
-      Cooperators > 0.5 ~ "Cooperators",
+    MostPrevalent = case_when(
+      `Indirect-reciprocators` > 0.5 ~ "Indirect-reciprocators (IR)",
       Defectors > 0.5 ~ "Defectors",
       `Money-users` > 0.5 ~ "Money-users",
-      TRUE ~ "none above 50%"
+      TRUE ~ "Mix of Cooperators and IR" # Derived from looking at trajectories
     ),
     # Extract the value of the most prevalent strategy
     MostPrevalentValue = case_when(
-      MostPrevalent == "Cooperators" ~ Cooperators,
+      MostPrevalent == "Indirect-reciprocators" ~ `Indirect-reciprocators`,
       MostPrevalent == "Defectors" ~ Defectors,
       MostPrevalent == "Money-users" ~ `Money-users`,
       TRUE ~ 0.5  # Default value for "none above 50%"
@@ -90,8 +92,8 @@ Figure4 <- df_core_money %>%
     BCRatio = as.factor(BCRatio)
   ) %>% 
   dplyr::summarize(
-    MeanCooperation = mean(CooperationRate), 
-    SDCooperation = sd(CooperationRate), 
+    MeanCooperation = median(CooperationRate), #median cooperation rate 
+    SDCooperation = sd(CooperationRate),  
     MostPrevalent = names(which.max(table(MostPrevalent))),
     # Calculate the mean value of the most prevalent strategy for each group
     MostPrevalentValue = mean(MostPrevalentValue, na.rm = TRUE)
@@ -101,15 +103,15 @@ Figure4 <- df_core_money %>%
   geom_tile(aes(fill = MostPrevalent, alpha = MeanCooperation), 
             color = "black") +
   geom_text(aes(label = sprintf("%.2f", MeanCooperation)), 
-            nudge_y = 0.3, size = 5, alpha = 0.9) +
+            nudge_y = 0.3, size = 3.5, alpha = 0.9) +
   geom_text(aes(label = sprintf("(%.2f)", SDCooperation)),
-                  #sprintf("±%.2f", SDCooperation)), 
-            nudge_y = -0.1, size = 4, alpha = 0.8) +
+            #sprintf("±%.2f", SDCooperation)), 
+            nudge_y = -0.1, size = 2.5, alpha = 0.8) +
   scale_fill_manual(
     values = c("Defectors" = "#ABA300",
                "Money-users" = "#00BE67",
-               "Cooperators" = "#F5A0B0",
-               "none above 50%" = "#EEEEEE")
+               "Indirect-reciprocators (IR)" = "#33AAFF",
+               "Mix of Cooperators and IR" = "#FF6666")
   ) +
   # Control the alpha range to make sure all tiles remain visible
   scale_alpha_continuous(range = c(0.2, 0.8), guide = "none") +
@@ -127,5 +129,3 @@ Figure4 <- df_core_money %>%
     legend.title = element_text(size = 18)
   ) +
   coord_fixed(ratio = 1)
-
-Figure4 # Show Figure 4
