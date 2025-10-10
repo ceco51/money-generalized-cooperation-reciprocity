@@ -69,12 +69,10 @@ df_core_money <-
 # Therefore, after loading all files, we give the possibility to apply filters to retain only the relevant ones.
 
 # This script replicates the evolutionary trajectories shown in Figure 2 of the main manuscript.
-# To replicate a different figure (e.g., Figure 5), simply update the `file_path` variable and
-# make any additional necessary adjustments to the code below.
 
 Figure2 <- df_core_money %>% 
-  filter(BCRatio %in% c(2, 3, 5, 10)) %>%
-  filter(Liquidity %in% c(0.25, 1, 10, 50)) %>% 
+  filter(BCRatio %in% c(1.25, 2, 3, 4)) %>%
+  filter(Liquidity %in% c(2, 5, 10, 15)) %>% 
   ggplot(aes(x = Step)) + # x-axis: Simulation step/tick
   ylim(0, 1) +
   stat_summary(
